@@ -6,14 +6,15 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ParserFactory {
 	
-	@Autowired
-	private List<Parser> parsersList;
+	private final List<Parser> parsersList;
 	
 	private Map<String, Parser> parserCache = new HashMap<>();
 	

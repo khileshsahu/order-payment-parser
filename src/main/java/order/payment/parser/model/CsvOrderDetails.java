@@ -9,10 +9,10 @@ import lombok.Setter;
 @Setter
 public class CsvOrderDetails {
 	@CsvBindByName(column = "Order ID")
-	private Integer orderId;
+	private String orderId;
 
 	@CsvBindByName(column = "amount")
-	private Double amount;
+	private String amount;
 
 	@CsvBindByName(column = "currency")
 	private String currency;

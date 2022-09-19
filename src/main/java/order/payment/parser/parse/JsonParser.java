@@ -16,12 +16,13 @@ import lombok.RequiredArgsConstructor;
 import order.payment.parser.exception.ParsingException;
 import order.payment.parser.model.Constants;
 import order.payment.parser.model.OrderDetails;
-import order.payment.parser.model.OrderValidator;
+import order.payment.parser.validator.OrderValidator;
 
 @Component
 @RequiredArgsConstructor
 public class JsonParser implements Parser {
 	
+	private static final String JSON = "json";
 	private final OrderValidator orderValidator;
 
 	@Override
@@ -43,17 +44,30 @@ public class JsonParser implements Parser {
 	
 	@Override
 	public String getType() {
-		return "json";
+		return JSON;
 	}
 
 	private OrderDetails fetchOrderDetails(JSONObject jsonObj, String fileName, int index) {
-		Integer orderId = ((Long) jsonObj.get(Constants.ORDER_ID)).intValue();
-		Double amount = (Double) jsonObj.get(Constants.AMOUNT);
+		Integer orderId = null;
+		Double amount = null;
+		String classCastErrorMsg = null;
+		try {
+			orderId = ((Long) jsonObj.get(Constants.ORDER_ID)).intValue();
+		} catch(ClassCastException e) {
+			classCastErrorMsg = e.getMessage();
+		}
+		
+		try {
+			amount = (Double) jsonObj.get(Constants.AMOUNT);
+		} catch(ClassCastException e) {
+			classCastErrorMsg = e.getMessage();
+		}
+
 		String currency = (String) jsonObj.get(Constants.CURRENCY);
 		String comment = (String) jsonObj.get(Constants.COMMENT);
 		
-		String validationResult = orderValidator.validate(orderId, amount, currency, comment);
-		String result =  validationResult == null ? "OK" : validationResult;
+		String result = findResult(orderId, amount, classCastErrorMsg, currency, comment);
+		
 		return OrderDetails.builder()
 				.orderId(orderId)
 				.amount(amount)
@@ -63,6 +77,19 @@ public class JsonParser implements Parser {
 				.line(index)
 				.result(result)
 				.build();
+	}
+
+	private String findResult(Integer orderId, Double amount, String classCastErrorMsg, String currency,
+			String comment) {
+		String result = "OK";
+		if(classCastErrorMsg != null) {
+			result = classCastErrorMsg;
+		}
+		else {
+			String validationResult = orderValidator.validate(orderId, amount, currency, comment);
+			result = validationResult == null ? result : validationResult;
+		}
+		return result;
 	}
 
 	private JSONArray getJsonArr(File file) {

@@ -14,17 +14,18 @@ import lombok.RequiredArgsConstructor;
 import order.payment.parser.exception.ParsingException;
 import order.payment.parser.model.CsvOrderDetails;
 import order.payment.parser.model.OrderDetails;
-import order.payment.parser.model.OrderValidator;
+import order.payment.parser.validator.OrderValidator;
 
 @Component
 @RequiredArgsConstructor
 public class CsvParser implements Parser {
 
+	private static final String CSV = "csv";
 	private final OrderValidator orderValidator;
 
 	@Override
 	public String getType() {
-		return "csv";
+		return CSV;
 	}
 
 	@Override
@@ -49,20 +50,44 @@ public class CsvParser implements Parser {
 		} catch (IllegalStateException | FileNotFoundException e) {
 			throw new ParsingException(e.getMessage(), e);
 		}
-		
+
 		return beans;
 	}
 
 	private OrderDetails fetchOrderDetails(CsvOrderDetails csvOrderDetails, String fileName, int index) {
-		Integer orderId = csvOrderDetails.getOrderId();
-		Double amount = csvOrderDetails.getAmount();
+		String numberFormatErrorMsg = null;
+		Integer orderId = null;
+		Double amount = null;
 		String currency = csvOrderDetails.getCurrency();
 		String comment = csvOrderDetails.getComment();
-
-		String validationResult = orderValidator.validate(orderId, amount, currency, comment);
-		String result = validationResult == null ? "OK" : validationResult;
+		try {
+			orderId = Integer.parseInt(csvOrderDetails.getOrderId()) ;
+		} catch (NumberFormatException e) {
+			numberFormatErrorMsg = e.getClass().toString() + " " + e.getMessage();
+		}
+		
+		try {
+			amount = Double.valueOf(csvOrderDetails.getAmount());
+		} catch (NumberFormatException e) {
+			numberFormatErrorMsg = e.getClass().toString() + " " + e.getMessage();
+		}
+		
+		String result = findResult(numberFormatErrorMsg, orderId, amount, currency, comment);
+		
 		return OrderDetails.builder().orderId(orderId).amount(amount).currency(currency).comment(comment)
 				.fileName(fileName).line(index).result(result).build();
+	}
+
+	private String findResult(String numberFormatErrorMsg, Integer orderId, Double amount, String currency,
+			String comment) {
+		String result = "OK";
+		if (numberFormatErrorMsg != null) {
+			result = numberFormatErrorMsg;
+		} else {
+			String validationResult = orderValidator.validate(orderId, amount, currency, comment);
+			result = validationResult == null ? result : validationResult;
+		}
+		return result;
 	}
 
 }

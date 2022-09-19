@@ -1,4 +1,4 @@
-package order.payment.parser.model;
+package order.payment.parser.validator;
 
 import org.springframework.stereotype.Component;
 
@@ -24,10 +24,10 @@ public class OrderValidator {
 
 	private String addMissingMessage(Integer orderId, Double amount, String currency, String comment) {
 		return "Missing required fields : " 
-				+ (orderId == null ? "orderId" : "")
-				+ (amount == null ? "amount" : "")
-				+ (currency == null ? "currency" : "")
-				+ (comment == null ? "comment" : "");
+				+ (orderId == null ? "orderId " : "")
+				+ (amount == null ? "amount " : "")
+				+ (currency == null ? "currency " : "")
+				+ (comment == null ? "comment " : "");
 	}
 	
 	private String validateEmptyFields(Integer orderId, Double amount, String currency, String comment) {
@@ -40,9 +40,9 @@ public class OrderValidator {
 	
 	private String addEmptyMessage(Integer orderId, Double amount, String currency, String comment) {
 		return "These fields can not be empty : "
-				+ (orderId == 0 ? "orderId" : "")
-				+ (amount == 0 ? "amount" : "")
-				+ (currency.isEmpty() ? "currency" : "")
-				+ (comment.isEmpty() ? "comment" : "");
+				+ (orderId == 0 ? "orderId " : "")
+				+ (amount == 0 ? "amount " : "")
+				+ (currency.isEmpty() ? "currency " : "")
+				+ (comment.isEmpty() ? "comment " : "");
 	}
 }
